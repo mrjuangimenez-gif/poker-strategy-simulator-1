@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Strategy Trainer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎴 Poker Strategy Trainer</h1>
+            <p>Practica tus decisiones en el flop</p>
+        </header>
+
+        <main class="practice-mode">
+            <!-- FLOP -->
+            <section class="flop-section">
+                <h2>FLOP</h2>
+                <div class="cards-container" id="flop-cards-visual">
+                    <div class="card">-</div>
+                    <div class="card">-</div>
+                    <div class="card">-</div>
+                </div>
+            </section>
+
+            <!-- MANO -->
+            <section class="hand-section">
+                <h2>MANO DEL BOT</h2>
+                <div class="cards-container" id="hand-cards-visual">
+                    <div class="card">-</div>
+                    <div class="card">-</div>
+                </div>
+            </section>
+
+            <!-- BOTONES DE ACCIÓN -->
+            <section class="action-buttons">
+                <button class="action-btn check" onclick="verificarRespuesta('CHECK')">CHECK</button>
+                <button class="action-btn bet-26" onclick="verificarRespuesta('BET_26')">BET 26%</button>
+                <button class="action-btn bet-52" onclick="verificarRespuesta('BET_52')">BET 52%</button>
+                <button class="action-btn bet-127" onclick="verificarRespuesta('BET_127')">BET 127%</button>
+            </section>
+
+            <!-- RESULTADO -->
+            <section class="result-section">
+                <div id="result-message" class="result-message">
+                    <p>Selecciona la acción correcta para este flop y mano</p>
+                </div>
+            </section>
+
+            <!-- NUEVA MANO -->
+            <button id="new-hand-btn" class="new-hand-btn" onclick="nuevaMano()">🔄 Nueva Mano Random</button>
+
+            <!-- ESTADÍSTICAS -->
+            <div class="stats">
+                <span>✅ <span id="correct-count">0</span></span>
+                <span>❌ <span id="incorrect-count">0</span></span>
+                <span>🎯 <span id="accuracy">0%</span></span>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
