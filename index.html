@@ -4,7 +4,200 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poker Strategy Trainer</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        h2 {
+            color: #34495e;
+            text-align: center;
+            margin-bottom: 15px;
+            font-weight: 400;
+            font-size: 1.3em;
+        }
+
+        /* Cartas con colores según palo */
+        .cards-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            width: 80px;
+            height: 120px;
+            border: 3px solid #2c3e50;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            font-weight: bold;
+            background: white;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card.spade { color: #2c3e50; } /* Negro */
+        .card.heart { color: #e74c3c; } /* Rojo */
+        .card.diamond { color: #3498db; } /* Azul */
+        .card.club { color: #27ae60; } /* Verde */
+
+        .card-value {
+            font-size: 1.8em;
+            line-height: 1;
+        }
+
+        .card-suit {
+            font-size: 1.5em;
+            margin-top: 5px;
+        }
+
+        /* Botones de acción con mismo color */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .action-btn {
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+            background: linear-gradient(135deg, #3498db, #2980b9);
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            filter: brightness(1.1);
+        }
+
+        /* Resultado */
+        .result-section {
+            margin-bottom: 25px;
+            min-height: 80px;
+        }
+
+        .result-message {
+            padding: 20px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            border-left: 5px solid #3498db;
+            text-align: center;
+        }
+
+        .result-message.correct {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+
+        .result-message.incorrect {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+
+        /* Botón nueva mano */
+        .new-hand-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .new-hand-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Estadísticas */
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .card {
+                width: 60px;
+                height: 90px;
+                font-size: 20px;
+            }
+            
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -60,6 +253,202 @@
         </main>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Configuración
+        const valores = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+        const palos = ['♠', '♥', '♦', '♣'];
+        const valorNumMap = {'2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, 'T':10, 'J':11, 'Q':12, 'K':13, 'A':14};
+        const paloClassMap = {'♠': 'spade', '♥': 'heart', '♦': 'diamond', '♣': 'club'};
+
+        // Estado global
+        let flopActual = [];
+        let manoActual = [];
+        let accionCorrecta = '';
+        let stats = { correctas: 0, incorrectas: 0 };
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            nuevaMano();
+        });
+
+        // Generar nueva mano random
+        function nuevaMano() {
+            flopActual = generarCartasRandom(3);
+            manoActual = generarCartasRandom(2);
+            accionCorrecta = calcularAccionCorrecta();
+            
+            mostrarCartasVisuales();
+            resetearResultado();
+        }
+
+        // Generar array de cartas random
+        function generarCartasRandom(cantidad) {
+            const cartas = [];
+            for (let i = 0; i < cantidad; i++) {
+                const valor = valores[Math.floor(Math.random() * valores.length)];
+                const palo = palos[Math.floor(Math.random() * palos.length)];
+                cartas.push({ valor, palo, valorNum: valorNumMap[valor] });
+            }
+            return cartas;
+        }
+
+        // Mostrar cartas en la interfaz
+        function mostrarCartasVisuales() {
+            // Flop
+            const flopContainer = document.getElementById('flop-cards-visual');
+            flopContainer.innerHTML = '';
+            flopActual.forEach(carta => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${paloClassMap[carta.palo]}`;
+                
+                const valueElement = document.createElement('div');
+                valueElement.className = 'card-value';
+                valueElement.textContent = carta.valor;
+                
+                const suitElement = document.createElement('div');
+                suitElement.className = 'card-suit';
+                suitElement.textContent = carta.palo;
+                
+                cardElement.appendChild(valueElement);
+                cardElement.appendChild(suitElement);
+                flopContainer.appendChild(cardElement);
+            });
+
+            // Mano
+            const handContainer = document.getElementById('hand-cards-visual');
+            handContainer.innerHTML = '';
+            manoActual.forEach(carta => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${paloClassMap[carta.palo]}`;
+                
+                const valueElement = document.createElement('div');
+                valueElement.className = 'card-value';
+                valueElement.textContent = carta.valor;
+                
+                const suitElement = document.createElement('div');
+                suitElement.className = 'card-suit';
+                suitElement.textContent = carta.palo;
+                
+                cardElement.appendChild(valueElement);
+                cardElement.appendChild(suitElement);
+                handContainer.appendChild(cardElement);
+            });
+        }
+
+        // Calcular acción correcta según reglas
+        function calcularAccionCorrecta() {
+            if (debeCheckear(flopActual)) return 'CHECK';
+            if (debeApostar52(flopActual)) return 'BET_52';
+            if (debeApostar127(flopActual, manoActual)) return 'BET_127';
+            return 'BET_26';
+        }
+
+        // Reglas de estrategia (las mismas de antes)
+        function debeCheckear(flop) {
+            const valores = flop.map(c => c.valorNum);
+            const maxValor = Math.max(...valores);
+            
+            if (maxValor <= 10) {
+                const sorted = [...valores].sort((a, b) => b - a);
+                const diff1 = sorted[0] - sorted[1];
+                const diff2 = sorted[1] - sorted[2];
+                if (diff1 <= 2 && diff2 <= 2) return true;
+            }
+            
+            if (valores.includes(14)) {
+                const otrasCartas = valores.filter(v => v !== 14);
+                if (otrasCartas.every(v => v <= 5)) return true;
+            }
+            
+            const palos = flop.map(c => c.palo);
+            if (new Set(palos).size === 1) return true;
+            
+            return false;
+        }
+
+        function debeApostar52(flop) {
+            const valores = flop.map(c => c.valorNum);
+            const palos = flop.map(c => c.palo);
+            
+            if (Math.min(...valores) >= 10) {
+                const conteoPalos = {};
+                palos.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
+                if (Object.values(conteoPalos).includes(2)) return true;
+            }
+            
+            if (new Set(valores).size === 1) return true;
+            
+            if (new Set(palos).size === 3) {
+                if (Math.max(...valores) <= 9) return true;
+            }
+            
+            return false;
+        }
+
+        function debeApostar127(flop, mano) {
+            const valores = flop.map(c => c.valorNum);
+            const palos = flop.map(c => c.palo);
+            
+            const valoresAltos = valores.filter(v => v >= 10);
+            const valoresBajos = valores.filter(v => v < 10);
+            
+            if (valoresAltos.length !== 2 || valoresBajos.length !== 1) return false;
+            
+            const conteoPalos = {};
+            palos.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
+            if (!Object.values(conteoPalos).includes(2)) return false;
+            
+            // Verificar mano (reglas simplificadas)
+            const valoresMano = mano.map(c => c.valorNum);
+            if (valores.includes(14)) { // Si hay A en flop
+                return valoresMano.includes(14) && 
+                       (valoresMano.includes(13) || valoresMano.includes(12) || valoresMano.includes(11));
+            }
+            
+            return true;
+        }
+
+        // Verificar respuesta del usuario
+        function verificarRespuesta(accionUsuario) {
+            const resultMessage = document.getElementById('result-message');
+            
+            if (accionUsuario === accionCorrecta) {
+                resultMessage.innerHTML = `<p>✅ <strong>¡Correcto!</strong> ${obtenerExplicacion()}</p>`;
+                resultMessage.className = 'result-message correct';
+                stats.correctas++;
+            } else {
+                resultMessage.innerHTML = `<p>❌ <strong>Incorrecto.</strong> La acción correcta era <strong>${accionCorrecta.replace('_', ' ')}</strong>. ${obtenerExplicacion()}</p>`;
+                resultMessage.className = 'result-message incorrect';
+                stats.incorrectas++;
+            }
+            
+            actualizarEstadisticas();
+        }
+
+        // Obtener explicación de la acción
+        function obtenerExplicacion() {
+            if (accionCorrecta === 'CHECK') return 'Flop cumple reglas de check (coordinado bajo, Axx bajo o monocolor)';
+            if (accionCorrecta === 'BET_52') return 'Flop cumple reglas de bet 52% (dos cartas mismo palo + altas, trío o rainbow seco bajo)';
+            if (accionCorrecta === 'BET_127') return 'Flop cumple reglas de bet 127% (dos cartas altas + baja + proyecto color con mano adecuada)';
+            return 'No se cumplen otras reglas (apuesta por defecto 26%)';
+        }
+
+        // Resetear resultado
+        function resetearResultado() {
+            const resultMessage = document.getElementById('result-message');
+            resultMessage.innerHTML = '<p>Selecciona la acción correcta para este flop y mano</p>';
+            resultMessage.className = 'result-message';
+        }
+
+        // Actualizar estadísticas
+        function actualizarEstadisticas() {
+            document.getElementById('correct-count').textContent = stats.correctas;
+            document.getElementById('incorrect-count').textContent = stats.incorrectas;
+            
+            const total = stats.correctas + stats.incorrectas;
+            const accuracy = total > 0 ? Math.round((stats.correctas / total) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+    </script>
 </body>
 </html>
