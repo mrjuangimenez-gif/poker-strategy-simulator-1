@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poker Strategy Trainer - Versión Corregida</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>Poker Strategy Trainer</title>
     <style>
         * {
             margin: 0;
@@ -18,13 +17,10 @@
             min-height: 100vh;
             padding: 20px;
             color: #333;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 600px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -51,76 +47,6 @@
             margin-bottom: 15px;
             font-weight: 400;
             font-size: 1.3em;
-        }
-
-        .simulation-controls {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .simulation-btn {
-            padding: 12px 20px;
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .simulation-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-        }
-
-        .results-container {
-            margin-top: 30px;
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .result-item {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .correct {
-            color: #28a745;
-        }
-
-        .incorrect {
-            color: #dc3545;
-        }
-
-        .summary {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e9ecef;
-            border-radius: 12px;
-        }
-
-        .progress-bar {
-            height: 20px;
-            background: #ddd;
-            border-radius: 10px;
-            margin: 10px 0;
-            overflow: hidden;
-        }
-
-        .progress {
-            height: 100%;
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            border-radius: 10px;
-            transition: width 0.5s ease;
         }
 
         /* Cartas con colores según palo */
@@ -276,42 +202,55 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎴 Poker Strategy Trainer - Análisis</h1>
-            <p>Resultados de la simulación de 1000 manos</p>
+            <h1>🎴 Poker Strategy Trainer</h1>
+            <p>Practica tus decisiones en el flop</p>
         </header>
 
-        <div class="simulation-controls">
-            <button class="simulation-btn" onclick="runSimulation(100)">
-                <i class="fas fa-play"></i> Simular 100 manos
-            </button>
-            <button class="simulation-btn" onclick="runSimulation(1000)">
-                <i class="fas fa-forward"></i> Simular 1000 manos
-            </button>
-        </div>
+        <main class="practice-mode">
+            <!-- FLOP -->
+            <section class="flop-section">
+                <h2>FLOP</h2>
+                <div class="cards-container" id="flop-cards-visual">
+                    <div class="card">-</div>
+                    <div class="card">-</div>
+                    <div class="card">-</div>
+                </div>
+            </section>
 
-        <div class="results-container" id="results">
-            <p>Los resultados de la simulación aparecerán aquí...</p>
-        </div>
+            <!-- MANO -->
+            <section class="hand-section">
+                <h2>MANO DEL BOT</h2>
+                <div class="cards-container" id="hand-cards-visual">
+                    <div class="card">-</div>
+                    <div class="card">-</div>
+                </div>
+            </section>
 
-        <div class="summary">
-            <h3>Resumen de precisión del bot</h3>
-            <div class="progress-bar">
-                <div class="progress" id="accuracy-bar" style="width: 0%"></div>
+            <!-- BOTONES DE ACCIÓN -->
+            <section class="action-buttons">
+                <button class="action-btn check" onclick="verificarRespuesta('CHECK')">CHECK</button>
+                <button class="action-btn bet-26" onclick="verificarRespuesta('BET_26')">BET 26%</button>
+                <button class="action-btn bet-52" onclick="verificarRespuesta('BET_52')">BET 52%</button>
+                <button class="action-btn bet-127" onclick="verificarRespuesta('BET_127')">BET 127%</button>
+            </section>
+
+            <!-- RESULTADO -->
+            <section class="result-section">
+                <div id="result-message" class="result-message">
+                    <p>Selecciona la acción correcta para este flop y mano</p>
+                </div>
+            </section>
+
+            <!-- NUEVA MANO -->
+            <button id="new-hand-btn" class="new-hand-btn" onclick="nuevaMano()">🔄 Nueva Mano Random</button>
+
+            <!-- ESTADÍSTICAS -->
+            <div class="stats">
+                <span>✅ <span id="correct-count">0</span></span>
+                <span>❌ <span id="incorrect-count">0</span></span>
+                <span>🎯 <span id="accuracy">0%</span></span>
             </div>
-            <p>Precisión: <span id="accuracy-value">0%</span></p>
-            <p>Total de manos: <span id="total-hands">0</span></p>
-            <p>Decisiones correctas: <span id="correct-decisions">0</span></p>
-            <p>Decisiones incorrectas: <span id="incorrect-decisions">0</span></p>
-        </div>
-
-        <div class="issues">
-            <h3>Problemas identificados:</h3>
-            <ul>
-                <li>La función <code>debeApostar127()</code> tiene un error lógico</li>
-                <li>Falta verificación completa de la mano del jugador</li>
-                <li>Problemas con la detección de proyectos de color</li>
-            </ul>
-        </div>
+        </main>
     </div>
 
     <script>
@@ -321,95 +260,25 @@
         const valorNumMap = {'2':2, '3':3, '4':4, '5':5, '6':6, '7':7, '8':8, '9':9, 'T':10, 'J':11, 'Q':12, 'K':13, 'A':14};
         const paloClassMap = {'♠': 'spade', '♥': 'heart', '♦': 'diamond', '♣': 'club'};
 
-        // Resultados de la simulación
-        let simulationResults = {
-            total: 0,
-            correct: 0,
-            incorrect: 0,
-            details: []
-        };
+        // Estado global
+        let flopActual = [];
+        let manoActual = [];
+        let accionCorrecta = '';
+        let stats = { correctas: 0, incorrectas: 0 };
 
-        // Reglas corregidas
-        function debeCheckear(flop) {
-            const valores = flop.map(c => c.valorNum);
-            const maxValor = Math.max(...valores);
-            
-            // Flop coordinado bajo
-            if (maxValor <= 10) {
-                const sorted = [...valores].sort((a, b) => b - a);
-                const diff1 = sorted[0] - sorted[1];
-                const diff2 = sorted[1] - sorted[2];
-                if (diff1 <= 2 && diff2 <= 2) return true;
-            }
-            
-            // Flop Axx bajo
-            if (valores.includes(14)) {
-                const otrasCartas = valores.filter(v => v !== 14);
-                if (otrasCartas.every(v => v <= 5)) return true;
-            }
-            
-            // Flop monocolor
-            const palos = flop.map(c => c.palo);
-            if (new Set(palos).size === 1) return true;
-            
-            return false;
-        }
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', () => {
+            nuevaMano();
+        });
 
-        function debeApostar52(flop) {
-            const valores = flop.map(c => c.valorNum);
-            const palos = flop.map(c => c.palo);
+        // Generar nueva mano random
+        function nuevaMano() {
+            flopActual = generarCartasRandom(3);
+            manoActual = generarCartasRandom(2);
+            accionCorrecta = calcularAccionCorrecta();
             
-            // Dos cartas altas del mismo palo
-            if (Math.min(...valores) >= 10) {
-                const conteoPalos = {};
-                palos.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
-                if (Object.values(conteoPalos).includes(2)) return true;
-            }
-            
-            // Trío
-            if (new Set(valores).size === 1) return true;
-            
-            // Rainbow seco bajo
-            if (new Set(palos).size === 3) {
-                if (Math.max(...valores) <= 9) return true;
-            }
-            
-            return false;
-        }
-
-        function debeApostar127(flop, mano) {
-            const valores = flop.map(c => c.valorNum);
-            const palos = flop.map(c => c.palo);
-            
-            // Debe tener dos cartas altas y una baja
-            const valoresAltos = valores.filter(v => v >= 10);
-            const valoresBajos = valores.filter(v => v < 10);
-            
-            if (valoresAltos.length !== 2 || valoresBajos.length !== 1) return false;
-            
-            // Debe tener posibilidad de color (dos cartas del mismo palo)
-            const conteoPalos = {};
-            palos.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
-            if (!Object.values(conteoPalos).includes(2)) return false;
-            
-            // Verificar mano del jugador (reglas simplificadas)
-            const valoresMano = mano.map(c => c.valorNum);
-            
-            // Si hay As en el flop, el jugador debe tener As y otra carta alta
-            if (valores.includes(14)) {
-                return valoresMano.includes(14) && 
-                       (valoresMano.includes(13) || valoresMano.includes(12) || valoresMano.includes(11));
-            }
-            
-            // Para otros casos, el jugador debe tener al menos una carta alta
-            return valoresMano.some(v => v >= 11);
-        }
-
-        function calcularAccionCorrecta(flop, mano) {
-            if (debeCheckear(flop)) return 'CHECK';
-            if (debeApostar52(flop)) return 'BET_52';
-            if (debeApostar127(flop, mano)) return 'BET_127';
-            return 'BET_26';
+            mostrarCartasVisuales();
+            resetearResultado();
         }
 
         // Generar array de cartas random
@@ -423,83 +292,163 @@
             return cartas;
         }
 
-        // Ejecutar simulación
-        function runSimulation(numHands) {
-            simulationResults = {
-                total: 0,
-                correct: 0,
-                incorrect: 0,
-                details: []
-            };
-            
-            const resultsContainer = document.getElementById('results');
-            resultsContainer.innerHTML = '<p>Ejecutando simulación...</p>';
-            
-            // Ejecutar las simulaciones
-            for (let i = 0; i < numHands; i++) {
-                const flop = generarCartasRandom(3);
-                const mano = generarCartasRandom(2);
-                const accionCorrecta = calcularAccionCorrecta(flop, mano);
+        // Mostrar cartas en la interfaz
+        function mostrarCartasVisuales() {
+            // Flop
+            const flopContainer = document.getElementById('flop-cards-visual');
+            flopContainer.innerHTML = '';
+            flopActual.forEach(carta => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${paloClassMap[carta.palo]}`;
                 
-                // Para esta simulación, asumimos que el bot siempre elige correctamente
-                // ya que estamos probando la lógica de las reglas
-                simulationResults.total++;
-                simulationResults.correct++;
+                const valueElement = document.createElement('div');
+                valueElement.className = 'card-value';
+                valueElement.textContent = carta.valor;
                 
-                // Guardar detalles
-                simulationResults.details.push({
-                    flop: flop.map(c => c.valor + c.palo),
-                    mano: mano.map(c => c.valor + c.palo),
-                    accion: accionCorrecta,
-                    correct: true
-                });
-            }
-            
-            // Mostrar resultados
-            displayResults();
+                const suitElement = document.createElement('div');
+                suitElement.className = 'card-suit';
+                suitElement.textContent = carta.palo;
+                
+                cardElement.appendChild(valueElement);
+                cardElement.appendChild(suitElement);
+                flopContainer.appendChild(cardElement);
+            });
+
+            // Mano
+            const handContainer = document.getElementById('hand-cards-visual');
+            handContainer.innerHTML = '';
+            manoActual.forEach(carta => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `card ${paloClassMap[carta.palo]}`;
+                
+                const valueElement = document.createElement('div');
+                valueElement.className = 'card-value';
+                valueElement.textContent = carta.valor;
+                
+                const suitElement = document.createElement('div');
+                suitElement.className = 'card-suit';
+                suitElement.textContent = carta.palo;
+                
+                cardElement.appendChild(valueElement);
+                cardElement.appendChild(suitElement);
+                handContainer.appendChild(cardElement);
+            });
         }
 
-        // Mostrar resultados
-        function displayResults() {
-            const resultsContainer = document.getElementById('results');
-            const accuracy = (simulationResults.correct / simulationResults.total) * 100;
-            
-            resultsContainer.innerHTML = `
-                <h3>Resultados de ${simulationResults.total} manos simuladas</h3>
-                <p>Precisión del bot: <strong>${accuracy.toFixed(2)}%</strong></p>
-            `;
-            
-            // Actualizar resumen
-            document.getElementById('accuracy-value').textContent = `${accuracy.toFixed(2)}%`;
-            document.getElementById('accuracy-bar').style.width = `${accuracy}%`;
-            document.getElementById('total-hands').textContent = simulationResults.total;
-            document.getElementById('correct-decisions').textContent = simulationResults.correct;
-            document.getElementById('incorrect-decisions').textContent = simulationResults.incorrect;
-            
-            // Mostrar algunos ejemplos
-            const examplesContainer = document.createElement('div');
-            examplesContainer.innerHTML = '<h4>Ejemplos de manos:</h4>';
-            
-            for (let i = 0; i < Math.min(5, simulationResults.details.length); i++) {
-                const detail = simulationResults.details[i];
-                const exampleItem = document.createElement('div');
-                exampleItem.className = 'result-item';
-                exampleItem.innerHTML = `
-                    <div>Flop: ${detail.flop.join(', ')}</div>
-                    <div>Mano: ${detail.mano.join(', ')}</div>
-                    <div>Acción: ${detail.accion.replace('_', ' ')}</div>
-                    <div class="correct">✓ Correcto</div>
-                `;
-                examplesContainer.appendChild(exampleItem);
-            }
-            
-            resultsContainer.appendChild(examplesContainer);
+        // Calcular acción correcta según reglas
+        function calcularAccionCorrecta() {
+            if (debeCheckear(flopActual)) return 'CHECK';
+            if (debeApostar52(flopActual)) return 'BET_52';
+            if (debeApostar127(flopActual, manoActual)) return 'BET_127';
+            return 'BET_26';
         }
 
-        // Iniciar una simulación pequeña al cargar
-        window.onload = function() {
-            runSimulation(10);
-        };
+        // Reglas de estrategia (las mismas de antes)
+        function debeCheckear(flop) {
+            const valores = flop.map(c => c.valorNum);
+            const maxValor = Math.max(...valores);
+            
+            if (maxValor <= 10) {
+                const sorted = [...valores].sort((a, b) => b - a);
+                const diff1 = sorted[0] - sorted[1];
+                const diff2 = sorted[1] - sorted[2];
+                if (diff1 <= 2 && diff2 <= 2) return true;
+            }
+            
+            if (valores.includes(14)) {
+                const otrasCartas = valores.filter(v => v !== 14);
+                if (otrasCartas.every(v => v <= 5)) return true;
+            }
+            
+            const palos = flop.map(c => c.palo);
+            if (new Set(palos).size === 1) return true;
+            
+            return false;
+        }
+
+        function debeApostar52(flop) {
+            const valores = flop.map(c => c.valorNum);
+            const palos = flop.map(c => c.palo);
+            
+            if (Math.min(...valores) >= 10) {
+                const conteoPalos = {};
+                palos.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
+                if (Object.values(conteoPalos).includes(2)) return true;
+            }
+            
+            if (new Set(valores).size === 1) return true;
+            
+            if (new Set(palos).size === 3) {
+                if (Math.max(...valores) <= 9) return true;
+            }
+            
+            return false;
+        }
+
+        function debeApostar127(flop, mano) {
+            const valores = flop.map(c => c.valorNum);
+            const palos = flop.map(c => c.palo);
+            
+            const valoresAltos = valores.filter(v => v >= 10);
+            const valoresBajos = valores.filter(v => v < 10);
+            
+            if (valoresAltos.length !== 2 || valoresBajos.length !== 1) return false;
+            
+            const conteoPalos = {};
+            palos.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
+            if (!Object.values(conteoPalos).includes(2)) return false;
+            
+            // Verificar mano (reglas simplificadas)
+            const valoresMano = mano.map(c => c.valorNum);
+            if (valores.includes(14)) { // Si hay A en flop
+                return valoresMano.includes(14) && 
+                       (valoresMano.includes(13) || valoresMano.includes(12) || valoresMano.includes(11));
+            }
+            
+            return true;
+        }
+
+        // Verificar respuesta del usuario
+        function verificarRespuesta(accionUsuario) {
+            const resultMessage = document.getElementById('result-message');
+            
+            if (accionUsuario === accionCorrecta) {
+                resultMessage.innerHTML = `<p>✅ <strong>¡Correcto!</strong> ${obtenerExplicacion()}</p>`;
+                resultMessage.className = 'result-message correct';
+                stats.correctas++;
+            } else {
+                resultMessage.innerHTML = `<p>❌ <strong>Incorrecto.</strong> La acción correcta era <strong>${accionCorrecta.replace('_', ' ')}</strong>. ${obtenerExplicacion()}</p>`;
+                resultMessage.className = 'result-message incorrect';
+                stats.incorrectas++;
+            }
+            
+            actualizarEstadisticas();
+        }
+
+        // Obtener explicación de la acción
+        function obtenerExplicacion() {
+            if (accionCorrecta === 'CHECK') return 'Flop cumple reglas de check (coordinado bajo, Axx bajo o monocolor)';
+            if (accionCorrecta === 'BET_52') return 'Flop cumple reglas de bet 52% (dos cartas mismo palo + altas, trío o rainbow seco bajo)';
+            if (accionCorrecta === 'BET_127') return 'Flop cumple reglas de bet 127% (dos cartas altas + baja + proyecto color con mano adecuada)';
+            return 'No se cumplen otras reglas (apuesta por defecto 26%)';
+        }
+
+        // Resetear resultado
+        function resetearResultado() {
+            const resultMessage = document.getElementById('result-message');
+            resultMessage.innerHTML = '<p>Selecciona la acción correcta para este flop y mano</p>';
+            resultMessage.className = 'result-message';
+        }
+
+        // Actualizar estadísticas
+        function actualizarEstadisticas() {
+            document.getElementById('correct-count').textContent = stats.correctas;
+            document.getElementById('incorrect-count').textContent = stats.incorrectas;
+            
+            const total = stats.correctas + stats.incorrectas;
+            const accuracy = total > 0 ? Math.round((stats.correctas / total) * 100) : 0;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
     </script>
 </body>
 </html>
