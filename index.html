@@ -324,6 +324,7 @@
                 <li>Dos cartas altas (≥ 10)</li>
                 <li>Una carta baja (< 10)</li>
                 <li>Proyecto de color (dos cartas del mismo palo)</li>
+                <li><strong>Sin pares en el flop</strong> (valores diferentes)</li>
             </ul>
             <p><strong>Condiciones de la Mano (al menos una):</strong></p>
             <ul>
@@ -374,25 +375,80 @@
             }
         }
 
-        // Generar nueva mano random
-        function nuevaMano() {
-            flopActual = generarCartasRandom(3);
-            manoActual = generarCartasRandom(2);
-            accionCorrecta = calcularAccionCorrecta();
-            
-            mostrarCartasVisuales();
-            resetearResultado();
-        }
-
-        // Generar array de cartas random
+        // Función mejorada para generar cartas random SIN DUPLICADOS
         function generarCartasRandom(cantidad) {
             const cartas = [];
-            for (let i = 0; i < cantidad; i++) {
+            const cartasGeneradas = new Set();
+            
+            while (cartas.length < cantidad) {
                 const valor = valores[Math.floor(Math.random() * valores.length)];
                 const palo = palos[Math.floor(Math.random() * palos.length)];
-                cartas.push({ valor, palo, valorNum: valorNumMap[valor] });
+                const cartaStr = `${valor}${palo}`;
+                
+                // Verificar que la carta no esté duplicada
+                if (!cartasGeneradas.has(cartaStr)) {
+                    cartas.push({ valor, palo, valorNum: valorNumMap[valor] });
+                    cartasGeneradas.add(cartaStr);
+                }
             }
             return cartas;
+        }
+
+        // Función para verificar duplicados entre flop y mano
+        function verificarDuplicados(flop, mano) {
+            const todasLasCartas = [...flop, ...mano];
+            const cartasVistas = new Set();
+            
+            for (const carta of todasLasCartas) {
+                const cartaStr = `${carta.valor}${carta.palo}`;
+                if (cartasVistas.has(cartaStr)) {
+                    return true; // Hay duplicados
+                }
+                cartasVistas.add(cartaStr);
+            }
+            return false; // No hay duplicados
+        }
+
+        // Generar nueva mano random SIN DUPLICADOS
+        function nuevaMano() {
+            let intentos = 0;
+            let hayDuplicados = true;
+            
+            // Generar flop y mano hasta que no haya duplicados
+            while (hayDuplicados && intentos < 10) {
+                flopActual = generarCartasRandom(3);
+                manoActual = generarCartasRandom(2);
+                hayDuplicados = verificarDuplicados(flopActual, manoActual);
+                intentos++;
+            }
+            
+            if (hayDuplicados) {
+                // Fallback: si después de 10 intentos sigue habiendo duplicados
+                // forzar cartas diferentes
+                flopActual = generarCartasRandom(3);
+                manoActual = generarCartasRandom(2);
+                
+                // Asegurar que no haya duplicados
+                const todasLasCartas = [...flopActual, ...manoActual];
+                const cartasUnicas = [];
+                const cartasVistas = new Set();
+                
+                for (const carta of todasLasCartas) {
+                    const cartaStr = `${carta.valor}${carta.palo}`;
+                    if (!cartasVistas.has(cartaStr)) {
+                        cartasUnicas.push(carta);
+                        cartasVistas.add(cartaStr);
+                    }
+                }
+                
+                // Reasignar flop y mano con cartas únicas
+                flopActual = cartasUnicas.slice(0, 3);
+                manoActual = cartasUnicas.slice(3, 5);
+            }
+            
+            accionCorrecta = calcularAccionCorrecta();
+            mostrarCartasVisuales();
+            resetearResultado();
         }
 
         // Mostrar cartas en la interfaz
@@ -543,12 +599,18 @@
             return false;
         }
 
-        // Verificar si el FLOP cumple condiciones para BET 127% (NUEVA FUNCIÓN)
+        // Verificar si el FLOP cumple condiciones para BET 127% (REGLAS CORREGIDAS)
         function debeApostar127Flop(flop) {
             const valores = flop.map(c => c.valorNum);
             const palosFlop = flop.map(c => c.palo);
             
-            // Debe tener dos cartas altas (≥10) y una baja (<10)
+            // 1. Verificar que NO haya par en el flop (valores diferentes)
+            const valoresUnicos = new Set(valores);
+            if (valoresUnicos.size !== 3) {
+                return false; // ❌ No aplica BET 127% si hay par
+            }
+            
+            // 2. Debe tener dos cartas altas (≥10) y una baja (<10)
             const valoresAltos = valores.filter(v => v >= 10);
             const valoresBajos = valores.filter(v => v < 10);
             
@@ -556,7 +618,7 @@
                 return false;
             }
             
-            // Debe tener proyecto de color (dos cartas mismo palo)
+            // 3. Debe tener proyecto de color (dos cartas mismo palo)
             const conteoPalos = {};
             palosFlop.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
             if (!Object.values(conteoPalos).includes(2)) {
