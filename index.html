@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Poker Strategy Trainer</title>
+    <title>Poker Strategy Trainer - Reglas Corregidas</title>
     <style>
         * {
             margin: 0;
@@ -47,6 +47,47 @@
             margin-bottom: 15px;
             font-weight: 400;
             font-size: 1.3em;
+        }
+
+        .rules-btn {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .rules-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .rules-content {
+            background: white;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 15px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
         }
 
         /* Cartas con colores según palo */
@@ -204,6 +245,7 @@
         <header>
             <h1>🎴 Poker Strategy Trainer</h1>
             <p>Practica tus decisiones en el flop</p>
+            <button class="rules-btn" onclick="mostrarReglas()">📋 Ver Reglas</button>
         </header>
 
         <main class="practice-mode">
@@ -253,6 +295,51 @@
         </main>
     </div>
 
+    <!-- Modal de Reglas -->
+    <div id="rules-modal" class="rules-modal">
+        <div class="rules-content">
+            <span class="close-btn" onclick="cerrarReglas()">&times;</span>
+            <h2>Reglas del Poker Strategy Trainer</h2>
+            
+            <h3>1. CHECK (Pasar)</h3>
+            <p>Se aplica cuando el flop cumple al menos una de estas condiciones:</p>
+            <ul>
+                <li><strong>Flop Coordinado Bajo:</strong> Todas las cartas ≤ 10 y diferencias ≤ 2 entre ellas</li>
+                <li><strong>Flop Monocolor:</strong> Las 3 cartas del mismo palo</li>
+                <li><strong>Flop Axx Bajo:</strong> Contiene un As y las otras dos cartas ≤ 5 (sin pares)</li>
+            </ul>
+            
+            <h3>2. BET 52%</h3>
+            <p>Se aplica cuando NO se cumple CHECK y el flop cumple al menos una de estas condiciones:</p>
+            <ul>
+                <li><strong>Dos Cartas Mismo Palo + Todas Altas:</strong> Dos cartas mismo palo, todas ≥ 10, sin pares</li>
+                <li><strong>Flop Trío:</strong> Las 3 cartas del mismo valor</li>
+                <li><strong>Rainbow Seco Bajo:</strong> 3 palos diferentes, carta más alta ≤ 9, sin pares, no coordinado</li>
+            </ul>
+            
+            <h3>3. BET 127%</h3>
+            <p>Se aplica cuando NO se cumple CHECK ni BET 52%, el flop cumple TODAS estas condiciones Y la mano es adecuada:</p>
+            <p><strong>Condiciones del Flop:</strong></p>
+            <ul>
+                <li>Dos cartas altas (≥ 10)</li>
+                <li>Una carta baja (< 10)</li>
+                <li>Proyecto de color (dos cartas del mismo palo)</li>
+            </ul>
+            <p><strong>Condiciones de la Mano (al menos una):</strong></p>
+            <ul>
+                <li>Top Pair con Kicker Premium</li>
+                <li>Two Pair o mejor</li>
+                <li>Proyectos de 4+ Outs (flush draw, OESD, gutshot)</li>
+                <li>Bottom Pair + Carta del Proyecto</li>
+                <li>Pocket Pair Bajo + Carta del Proyecto</li>
+            </ul>
+            
+            <h3>4. BET 26%</h3>
+            <p>Se aplica por defecto cuando NO se cumple CHECK, ni BET 52%, ni (BET 127% con mano válida).</p>
+            <p>Si el flop cumple BET 127% pero la mano NO es adecuada, se aplica CHECK.</p>
+        </div>
+    </div>
+
     <script>
         // Configuración
         const valores = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
@@ -270,6 +357,23 @@
         document.addEventListener('DOMContentLoaded', () => {
             nuevaMano();
         });
+
+        // Mostrar/ocultar reglas
+        function mostrarReglas() {
+            document.getElementById('rules-modal').style.display = 'block';
+        }
+
+        function cerrarReglas() {
+            document.getElementById('rules-modal').style.display = 'none';
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('rules-modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
 
         // Generar nueva mano random
         function nuevaMano() {
@@ -335,77 +439,205 @@
             });
         }
 
-        // Calcular acción correcta según reglas
+        // Calcular acción correcta según reglas (CORREGIDO)
         function calcularAccionCorrecta() {
-            if (debeCheckear(flopActual)) return 'CHECK';
-            if (debeApostar52(flopActual)) return 'BET_52';
-            if (debeApostar127(flopActual, manoActual)) return 'BET_127';
+            // 1. Primero verificar CHECK (máxima prioridad)
+            if (debeCheckear(flopActual)) {
+                return 'CHECK';
+            }
+            
+            // 2. Luego verificar BET 52%
+            if (debeApostar52(flopActual)) {
+                return 'BET_52';
+            }
+            
+            // 3. Verificar BET 127% (solo si el flop cumple las condiciones)
+            const flopCumple127 = debeApostar127Flop(flopActual);
+            if (flopCumple127) {
+                // Si el flop cumple, verificar si la mano es adecuada
+                if (debeApostar127Mano(flopActual, manoActual)) {
+                    return 'BET_127';
+                } else {
+                    // Si el flop cumple pero la mano no, entonces CHECK
+                    return 'CHECK';
+                }
+            }
+            
+            // 4. Por defecto, BET 26%
             return 'BET_26';
         }
 
-        // Reglas de estrategia (las mismas de antes)
+        // Reglas para CHECK (CORREGIDAS)
         function debeCheckear(flop) {
             const valores = flop.map(c => c.valorNum);
-            const maxValor = Math.max(...valores);
+            const palosFlop = flop.map(c => c.palo);
             
+            // 1. Flop Coordinado Bajo: Todas ≤ 10 y diferencias ≤ 2
+            const maxValor = Math.max(...valores);
             if (maxValor <= 10) {
                 const sorted = [...valores].sort((a, b) => b - a);
                 const diff1 = sorted[0] - sorted[1];
                 const diff2 = sorted[1] - sorted[2];
-                if (diff1 <= 2 && diff2 <= 2) return true;
+                if (diff1 <= 2 && diff2 <= 2) {
+                    return true;
+                }
             }
             
+            // 2. Flop Monocolor: 3 cartas mismo palo
+            if (new Set(palosFlop).size === 1) {
+                return true;
+            }
+            
+            // 3. Flop Axx Bajo: Contiene A, otras dos ≤ 5, sin pares
             if (valores.includes(14)) {
                 const otrasCartas = valores.filter(v => v !== 14);
-                if (otrasCartas.every(v => v <= 5)) return true;
+                if (otrasCartas.every(v => v <= 5)) {
+                    // Verificar que no haya pares
+                    const valoresUnicos = new Set(valores);
+                    if (valoresUnicos.size === 3) { // Sin pares
+                        return true;
+                    }
+                }
             }
-            
-            const palos = flop.map(c => c.palo);
-            if (new Set(palos).size === 1) return true;
             
             return false;
         }
 
+        // Reglas para BET 52% (CORREGIDAS)
         function debeApostar52(flop) {
             const valores = flop.map(c => c.valorNum);
-            const palos = flop.map(c => c.palo);
+            const palosFlop = flop.map(c => c.palo);
             
+            // 1. Dos Cartas Mismo Palo + Todas Altas (sin pares)
             if (Math.min(...valores) >= 10) {
                 const conteoPalos = {};
-                palos.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
-                if (Object.values(conteoPalos).includes(2)) return true;
+                palosFlop.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
+                if (Object.values(conteoPalos).includes(2)) {
+                    // Verificar que no haya pares
+                    const valoresUnicos = new Set(valores);
+                    if (valoresUnicos.size === 3) {
+                        return true;
+                    }
+                }
             }
             
-            if (new Set(valores).size === 1) return true;
+            // 2. Flop Trío: 3 cartas mismo valor
+            if (new Set(valores).size === 1) {
+                return true;
+            }
             
-            if (new Set(palos).size === 3) {
-                if (Math.max(...valores) <= 9) return true;
+            // 3. Rainbow Seco Bajo: 3 palos diferentes, carta más alta ≤ 9, sin pares, no coordinado
+            if (new Set(palosFlop).size === 3) {
+                const maxValor = Math.max(...valores);
+                if (maxValor <= 9) {
+                    // Verificar que no haya pares
+                    const valoresUnicos = new Set(valores);
+                    if (valoresUnicos.size === 3) {
+                        // Verificar que no sea coordinado
+                        const sorted = [...valores].sort((a, b) => b - a);
+                        const diff1 = sorted[0] - sorted[1];
+                        const diff2 = sorted[1] - sorted[2];
+                        if (diff1 > 2 || diff2 > 2) {
+                            return true;
+                        }
+                    }
+                }
             }
             
             return false;
         }
 
-        function debeApostar127(flop, mano) {
+        // Verificar si el FLOP cumple condiciones para BET 127% (NUEVA FUNCIÓN)
+        function debeApostar127Flop(flop) {
             const valores = flop.map(c => c.valorNum);
-            const palos = flop.map(c => c.palo);
+            const palosFlop = flop.map(c => c.palo);
             
+            // Debe tener dos cartas altas (≥10) y una baja (<10)
             const valoresAltos = valores.filter(v => v >= 10);
             const valoresBajos = valores.filter(v => v < 10);
             
-            if (valoresAltos.length !== 2 || valoresBajos.length !== 1) return false;
+            if (valoresAltos.length !== 2 || valoresBajos.length !== 1) {
+                return false;
+            }
             
+            // Debe tener proyecto de color (dos cartas mismo palo)
             const conteoPalos = {};
-            palos.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
-            if (!Object.values(conteoPalos).includes(2)) return false;
-            
-            // Verificar mano (reglas simplificadas)
-            const valoresMano = mano.map(c => c.valorNum);
-            if (valores.includes(14)) { // Si hay A en flop
-                return valoresMano.includes(14) && 
-                       (valoresMano.includes(13) || valoresMano.includes(12) || valoresMano.includes(11));
+            palosFlop.forEach(p => conteoPalos[p] = (conteoPalos[p] || 0) + 1);
+            if (!Object.values(conteoPalos).includes(2)) {
+                return false;
             }
             
             return true;
+        }
+
+        // Verificar si la MANO cumple condiciones para BET 127% (NUEVA FUNCIÓN)
+        function debeApostar127Mano(flop, mano) {
+            const valoresFlop = flop.map(c => c.valorNum);
+            const palosFlop = flop.map(c => c.palo);
+            const valoresMano = mano.map(c => c.valorNum);
+            const palosMano = mano.map(c => c.palo);
+            
+            // Encontrar el palo del proyecto (el que aparece dos veces en el flop)
+            const conteoPalosFlop = {};
+            palosFlop.forEach(p => conteoPalosFlop[p] = (conteoPalosFlop[p] || 0) + 1);
+            let paloProyecto = null;
+            for (const [palo, count] of Object.entries(conteoPalosFlop)) {
+                if (count === 2) {
+                    paloProyecto = palo;
+                    break;
+                }
+            }
+            
+            // 1. Top Pair con Kicker Premium
+            const maxValorFlop = Math.max(...valoresFlop);
+            if (valoresMano.includes(maxValorFlop)) {
+                // Verificar kicker premium según la carta más alta del flop
+                if (maxValorFlop === 14 && (valoresMano.includes(13) || valoresMano.includes(12) || valoresMano.includes(11))) {
+                    return true;
+                } else if (maxValorFlop === 13 && (valoresMano.includes(14) || valoresMano.includes(12))) {
+                    return true;
+                } else if (maxValorFlop === 12 && (valoresMano.includes(14) || valoresMano.includes(13))) {
+                    return true;
+                } else if (maxValorFlop === 11 && (valoresMano.includes(14) || valoresMano.includes(13) || valoresMano.includes(12))) {
+                    return true;
+                } else if (maxValorFlop === 10 && (valoresMano.includes(14) || valoresMano.includes(13) || valoresMano.includes(12) || valoresMano.includes(11))) {
+                    return true;
+                }
+            }
+            
+            // 2. Two Pair o mejor (simplificado)
+            // Verificar si la mano forma two pair con el flop
+            const valoresUnicosMano = new Set(valoresMano);
+            if (valoresUnicosMano.size === 1) { // Pocket pair
+                const pocketValor = valoresMano[0];
+                if (valoresFlop.includes(pocketValor)) {
+                    return true; // Forma trío
+                }
+            } else if (valoresUnicosMano.size === 2) { // Dos cartas diferentes
+                // Verificar si cada carta hace par con el flop
+                if (valoresFlop.includes(valoresMano[0]) && valoresFlop.includes(valoresMano[1])) {
+                    return true; // Forma two pair
+                }
+            }
+            
+            // 3. Proyectos de 4+ Outs (simplificado)
+            // Verificar flush draw (9 outs)
+            if (paloProyecto && palosMano.includes(paloProyecto)) {
+                return true;
+            }
+            
+            // 4. Bottom Pair + Carta del Proyecto
+            const minValorFlop = Math.min(...valoresFlop);
+            if (valoresMano.includes(minValorFlop) && paloProyecto && palosMano.includes(paloProyecto)) {
+                return true;
+            }
+            
+            // 5. Pocket Pair Bajo + Carta del Proyecto
+            if (valoresMano[0] === valoresMano[1] && valoresMano[0] < minValorFlop && paloProyecto && palosMano.includes(paloProyecto)) {
+                return true;
+            }
+            
+            return false;
         }
 
         // Verificar respuesta del usuario
@@ -427,9 +659,15 @@
 
         // Obtener explicación de la acción
         function obtenerExplicacion() {
-            if (accionCorrecta === 'CHECK') return 'Flop cumple reglas de check (coordinado bajo, Axx bajo o monocolor)';
+            if (accionCorrecta === 'CHECK') {
+                if (debeCheckear(flopActual)) {
+                    return 'Flop cumple reglas de check (coordinado bajo, monocolor o Axx bajo)';
+                } else {
+                    return 'Flop cumple BET 127% pero la mano no es adecuada';
+                }
+            }
             if (accionCorrecta === 'BET_52') return 'Flop cumple reglas de bet 52% (dos cartas mismo palo + altas, trío o rainbow seco bajo)';
-            if (accionCorrecta === 'BET_127') return 'Flop cumple reglas de bet 127% (dos cartas altas + baja + proyecto color con mano adecuada)';
+            if (accionCorrecta === 'BET_127') return 'Flop cumple reglas de bet 127% y la mano es adecuada';
             return 'No se cumplen otras reglas (apuesta por defecto 26%)';
         }
 
