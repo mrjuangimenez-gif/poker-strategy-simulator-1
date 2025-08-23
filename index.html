@@ -336,7 +336,6 @@
             
             <h3>4. BET 26%</h3>
             <p>Se aplica por defecto cuando NO se cumple CHECK, ni BET 52%, ni (BET 127% con mano válida).</p>
-            <p>Si el flop cumple BET 127% pero la mano NO es adecuada, se aplica CHECK.</p>
         </div>
     </div>
 
@@ -439,7 +438,7 @@
             });
         }
 
-        // Calcular acción correcta según reglas (CORREGIDO)
+        // Calcular acción correcta según reglas (VERSIÓN CORREGIDA)
         function calcularAccionCorrecta() {
             // 1. Primero verificar CHECK (máxima prioridad)
             if (debeCheckear(flopActual)) {
@@ -457,13 +456,10 @@
                 // Si el flop cumple, verificar si la mano es adecuada
                 if (debeApostar127Mano(flopActual, manoActual)) {
                     return 'BET_127';
-                } else {
-                    // Si el flop cumple pero la mano no, entonces CHECK
-                    return 'CHECK';
                 }
             }
             
-            // 4. Por defecto, BET 26%
+            // 4. Por defecto, BET 26% (cuando no aplican las reglas anteriores)
             return 'BET_26';
         }
 
@@ -660,11 +656,7 @@
         // Obtener explicación de la acción
         function obtenerExplicacion() {
             if (accionCorrecta === 'CHECK') {
-                if (debeCheckear(flopActual)) {
-                    return 'Flop cumple reglas de check (coordinado bajo, monocolor o Axx bajo)';
-                } else {
-                    return 'Flop cumple BET 127% pero la mano no es adecuada';
-                }
+                return 'Flop cumple reglas de check (coordinado bajo, monocolor o Axx bajo)';
             }
             if (accionCorrecta === 'BET_52') return 'Flop cumple reglas de bet 52% (dos cartas mismo palo + altas, trío o rainbow seco bajo)';
             if (accionCorrecta === 'BET_127') return 'Flop cumple reglas de bet 127% y la mano es adecuada';
